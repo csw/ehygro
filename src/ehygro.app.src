@@ -2,6 +2,7 @@
  [
   {description, ""},
   {vsn, "1"},
+  {modules, [ehygro_app, ehygro_sup, dht22_server]},
   {registered, []},
   {applications, [
                   kernel,
