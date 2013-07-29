@@ -28,7 +28,7 @@ int read_dht22(int pin, uint32_t timeout, dht22_reading_t *reading)
     uint32_t deadline = millis() + timeout;
     do {
         wait_until_ready();
-        int dat[5] = { 0, 0, 0, 0, 0 };
+        int dat[6] = { 0, 0, 0, 0, 0, 0 };
         int read_rc = try_read_dht22(pin, dat);
         if (read_rc == 0 && checksum_ok(dat)) {
             convert(dat, reading);
@@ -36,7 +36,7 @@ int read_dht22(int pin, uint32_t timeout, dht22_reading_t *reading)
         }
     } while (!success && millis() < deadline);
 
-    return success ? 1 : 0;
+    return success ? 0 : 1;
 }
 
 static int try_read_dht22(int pin, int *dat)
@@ -83,7 +83,9 @@ static int try_read_dht22(int pin, int *dat)
         }
     }
 
-    if (cur_bit == DATA_BITS)
+    last_read = millis();
+
+    if (cur_bit >= DATA_BITS)
         return 0;
     else
         return -1;
