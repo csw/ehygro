@@ -33,7 +33,7 @@ handle_info({'EXIT', Port, Reason}, {Port} = State) ->
 
 terminate({port_terminated, _Reason}, _State) ->
     ok;
-terminate(_Reason, {Port} = State) ->
+terminate(_Reason, {Port}) ->
     port_close(Port).
 
 
