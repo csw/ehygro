@@ -87,7 +87,8 @@ static int init_rt()
 static int run()
 {
     int index;
-    while (read_msg(&index) == 0) {
+
+    while (read_msg(&index) > 0) {
         int version, arity;
 
         if (ei_decode_version(iobuf, &index, &version) != 0)
@@ -108,12 +109,13 @@ static int run()
             if (ei_decode_ulong(iobuf, &index, &timeout) != 0)
                 return error("Decoding timeout failed!");
 
+            index = LENGTH_BYTES;
+
             if (ei_encode_version(iobuf, &index) != 0)
                 return error("Encoding version failed!");
 
-            index = LENGTH_BYTES;
             dht22_reading_t reading;
-            if (read_dht22(dht22_pin, timeout, &reading) == 0) {
+            if (read_dht22(dht22_pin, timeout*1000, &reading) == 0) {
                 /* Success */
                 if (ei_encode_tuple_header(iobuf, &index, 3) != 0)
                     return error("Encoding tuple header failed!");
