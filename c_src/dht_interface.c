@@ -31,7 +31,7 @@ static int error(const char *msg);
 #define BUFSIZE 1024
 #define LENGTH_BYTES 2
 
-static int dht22_pin = 4;
+static int dht22_pin = 7;
 
 static int exit_code = 0;
 static int lock_fd;
