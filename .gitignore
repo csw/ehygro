@@ -1,1 +1,2 @@
 /ebin
+/c_src/*.o
