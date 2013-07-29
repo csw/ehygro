@@ -104,10 +104,11 @@ static int run()
         if (strcmp(key, "read") == 0) {
             if (arity != 2)
                 return error("read message with invalid arity!");
-
             unsigned long timeout;
             if (ei_decode_ulong(iobuf, &index, &timeout) != 0)
                 return error("Decoding timeout failed!");
+
+            fprintf(stderr, "Received {read, %lu}.\n", timeout);
 
             index = LENGTH_BYTES;
 
@@ -117,6 +118,9 @@ static int run()
             dht22_reading_t reading;
             if (read_dht22(dht22_pin, timeout*1000, &reading) == 0) {
                 /* Success */
+                fprintf(stderr, "Successful read: %u RH, %d deg C\n",
+                        reading.humidity, reading.temp);
+
                 if (ei_encode_tuple_header(iobuf, &index, 3) != 0)
                     return error("Encoding tuple header failed!");
 
@@ -202,10 +206,13 @@ static int error(const char *msg)
 
 int main(int argc, char *argv[])
 {
+    fprintf(stderr, "Initializing dht_interface.\n");
+
     if (init() != 0) {
         fprintf(stderr, "Initialization error.\n");
         exit(1);
     }
+    fprintf(stderr, "Initialized.\n");
 
     int rc = run();
     close_lockfile(lock_fd);
