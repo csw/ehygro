@@ -2,13 +2,13 @@
 
 -behaviour(gen_server).
 
--export([start_link/1, get_reading/0]).
+-export([start_link/0, get_reading/0]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
-start_link(ExtProg) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, ExtProg, []).
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, "dht_interface", []).
 
 init(ExtProg) ->
     process_flag(trap_exit, true),
