@@ -16,10 +16,9 @@
 
 
 static int try_read_dht22(int pin, int *dat);
-static int wait_until_ready();
+static void wait_until_ready();
 static bool checksum_ok(int *dat);
 static void convert(int *dat, dht22_reading_t *reading);
-static uint8_t sizecvt(const int read);
 
 static unsigned int last_read = 0;
 
@@ -30,12 +29,14 @@ int read_dht22(int pin, uint32_t timeout, dht22_reading_t *reading)
     do {
         wait_until_ready();
         int dat[5] = { 0, 0, 0, 0, 0 };
-        int read_rc = try_read_dht22(pin, &dat);
+        int read_rc = try_read_dht22(pin, dat);
         if (read_rc == 0 && checksum_ok(dat)) {
             convert(dat, reading);
             success = true;
         }
     } while (!success && millis() < deadline);
+
+    return success ? 1 : 0;
 }
 
 static int try_read_dht22(int pin, int *dat)
@@ -90,24 +91,23 @@ static int try_read_dht22(int pin, int *dat)
 
 static bool checksum_ok(int *dat)
 {
-    return (dat[4] == (dat[0] + dat[1] + dat[2] + dat[3]) & 0xFF);
+    return (dat[4] == ((dat[0] + dat[1] + dat[2] + dat[3]) & 0xFF));
 }
 
 static void convert(int *dat, dht22_reading_t *reading)
 {
-    reading.humidity = dat[0] << 8 | dat[1];
+    reading->humidity = dat[0] << 8 | dat[1];
     int32_t temp = (dat[2] & 0x7F) << 8 | dat[3];
     /* check sign bit */
     if (dat[2] & 0x80)
         temp *= -1;
-    reading.temp = temp;
+    reading->temp = temp;
 }
 
-static int wait_until_ready()
+static void wait_until_ready()
 {
     /* Lack of error codes worries me a bit here. */
     unsigned int elapsed = millis() - last_read;
     if (elapsed < SENSOR_WAIT_USEC)
         delay(SENSOR_WAIT_USEC - elapsed);
 }
-

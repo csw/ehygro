@@ -1,10 +1,17 @@
+#include <assert.h>
 #include <sched.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <wiringPi.h>
+
+#include "erl_interface.h"
+#include "ei.h"
 
 #include "dht22.h"
 #include "locking.h"
@@ -12,14 +19,11 @@
 static int init();
 static int init_rt();
 
-static void usage(const char *argv[]);
-
 static int run();
 static int read_msg(int *index);
-static int write_msg(int *index);
 
-static int read_exact(byte *buf, int len);
-static int write_exact(byte *buf, int len);
+static int read_exact(char *buf, int len);
+static int write_exact(char *buf, int len);
 static int error(const char *msg);
 
 /* Globals */
@@ -76,6 +80,8 @@ static int init_rt()
         perror("mlockall failed");
         return -1;
     }
+
+    return 0;
 }
 
 static int run()
@@ -91,7 +97,7 @@ static int run()
             return error("Decoding tuple failed!");
 
         char key[MAXATOMLEN];
-        if (ei_decode_atom(iobuf, &index, &key) != 0)
+        if (ei_decode_atom(iobuf, &index, key) != 0)
             return error("Decoding key atom failed!");
 
         if (strcmp(key, "read") == 0) {
@@ -160,7 +166,7 @@ static int read_msg(int *index)
     return term_length;
 }
 
-static int read_exact(byte *buf, int len)
+static int read_exact(char *buf, int len)
 {
     int i, got=0;
 
@@ -173,7 +179,7 @@ static int read_exact(byte *buf, int len)
     return len;
 }
 
-static int write_exact(byte *buf, int len)
+static int write_exact(char *buf, int len)
 {
     int i, wrote = 0;
 
@@ -188,8 +194,7 @@ static int write_exact(byte *buf, int len)
 
 static int error(const char *msg)
 {
-    write(2, msg);
-    stop_now = true;
+    fprintf(stderr, "%s\n", msg);
     return -1;
 }
 
